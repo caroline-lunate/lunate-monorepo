@@ -14,37 +14,189 @@
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   }
   main {
-    max-width: 680px;
+    max-width: 1200px;
     margin: 0 auto;
-    padding: 48px 16px;
+    padding: 40px 16px 64px;
+    text-align: center;
   }
   h1 {
     font-size: 1.6rem;
-    margin: 0 0 20px;
+    margin: 0 0 32px;
   }
-  ul {
-    list-style: none;
-    padding: 0;
+  .compare {
+    display: flex;
+    gap: 24px;
+    justify-content: center;
+    flex-wrap: wrap;
   }
-  li a {
-    display: block;
-    padding: 14px 16px;
-    border: 1px solid #26262e;
+  .panel {
+    flex: 1 1 420px;
+    max-width: 560px;
+  }
+  .panel h2 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin: 0 0 4px;
+  }
+  .panel h2 .tag {
+    font-weight: 400;
+    color: #9a9aa5;
+  }
+  .player {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 640 / 400;
+    background: #000;
     border-radius: 8px;
-    color: #e8e8ec;
-    text-decoration: none;
+    overflow: hidden;
+    box-shadow: 0 0 0 1px #26262e;
+    margin-top: 10px;
   }
-  li a:hover {
-    background: #17171c;
+  .player img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: none;
+  }
+  .player .loading {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.85rem;
+    color: #7a7a85;
+  }
+  .controls {
+    margin-top: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    font-size: 0.85rem;
+    color: #9a9aa5;
+  }
+  button {
+    background: #1b1b22;
+    color: #e8e8ec;
+    border: 1px solid #33333c;
+    border-radius: 6px;
+    padding: 6px 14px;
+    font-size: 0.85rem;
+    cursor: pointer;
+  }
+  button:hover {
+    background: #26262e;
   }
 </style>
 </head>
 <body>
 <main>
   <h1>lunatespace.com</h1>
-  <ul>
-    <li><a href="lunar-lander.html">Lunar Lander Crash &rarr;</a></li>
-  </ul>
+
+  <div class="compare">
+    <div class="panel">
+      <h2>Before Lunate <span class="tag">(crashing)</span></h2>
+      <div class="player" id="player-before">
+        <div class="loading">loading frames&hellip;</div>
+      </div>
+      <div class="controls">
+        <button id="toggle-before" type="button">Pause</button>
+        <span id="label-before">frame 1 / 100</span>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>With Lunate <span class="tag">(successful landing)</span></h2>
+      <div class="player" id="player-with">
+        <div class="loading">loading frames&hellip;</div>
+      </div>
+      <div class="controls">
+        <button id="toggle-with" type="button">Pause</button>
+        <span id="label-with">frame 1 / 100</span>
+      </div>
+    </div>
+  </div>
 </main>
+
+<script>
+(function () {
+  var FRAME_COUNT = 100;
+  var FPS = 10;
+
+  function flipbook(opts) {
+    var player = document.getElementById(opts.playerId);
+    var loading = player.querySelector(".loading");
+    var toggleBtn = document.getElementById(opts.toggleId);
+    var label = document.getElementById(opts.labelId);
+
+    var images = [];
+    var loadedCount = 0;
+    var current = 0;
+    var playing = true;
+    var timer = null;
+
+    function show(index) {
+      for (var i = 0; i < images.length; i++) {
+        images[i].style.display = i === index ? "block" : "none";
+      }
+      label.textContent = "frame " + (index + 1) + " / " + FRAME_COUNT;
+    }
+
+    function tick() {
+      current = (current + 1) % FRAME_COUNT;
+      show(current);
+    }
+
+    function start() {
+      show(current);
+      timer = setInterval(tick, 1000 / FPS);
+    }
+
+    for (var i = 0; i < FRAME_COUNT; i++) {
+      var img = new Image();
+      img.src = opts.prefix + String(i).padStart(3, "0") + ".jpg";
+      img.alt = opts.alt + " frame " + (i + 1);
+      img.onload = function () {
+        loadedCount++;
+        if (loadedCount === FRAME_COUNT) {
+          loading.remove();
+          start();
+        }
+      };
+      player.appendChild(img);
+      images.push(img);
+    }
+
+    toggleBtn.addEventListener("click", function () {
+      playing = !playing;
+      if (playing) {
+        toggleBtn.textContent = "Pause";
+        timer = setInterval(tick, 1000 / FPS);
+      } else {
+        toggleBtn.textContent = "Play";
+        clearInterval(timer);
+      }
+    });
+  }
+
+  flipbook({
+    playerId: "player-before",
+    toggleId: "toggle-before",
+    labelId: "label-before",
+    prefix: "lunar-lander-frame-",
+    alt: "Lunar lander crash animation"
+  });
+
+  flipbook({
+    playerId: "player-with",
+    toggleId: "toggle-with",
+    labelId: "label-with",
+    prefix: "lunate-landing-frame-",
+    alt: "Successful lunar landing animation"
+  });
+})();
+</script>
 </body>
 </html>
