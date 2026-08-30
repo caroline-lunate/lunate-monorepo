@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Founders &mdash; lunatespace.com</title>
+<link rel="stylesheet" href="../assets/css/site.css">
+<style>
+  body {
+    background:
+      radial-gradient(1200px 700px at 70% -10%, rgba(40,44,90,0.35), transparent 60%),
+      #05060a;
+  }
+  .space {
+    position: relative;
+    min-height: 100vh;
+    background: #05060a url("../assets/img/space-bg.jpg") center 30% / cover no-repeat fixed;
+  }
+  .space::after {
+    /* helmet-glass vignette over the whole page */
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: radial-gradient(120% 90% at 50% 8%, transparent 55%, rgba(3,4,8,0.72) 100%);
+  }
+  main.founders {
+    position: relative;
+    z-index: 1;
+    max-width: 900px;
+  }
+  .eyebrow {
+    font-size: 0.72rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: #8fa0d8;
+    margin: 0 0 10px;
+  }
+  main.founders h1 {
+    font-size: 2rem;
+    margin: 0 0 10px;
+    text-wrap: balance;
+  }
+  .mission {
+    max-width: 60ch;
+    margin: 0 auto 44px;
+    color: #c3c7d2;
+    font-size: 0.98rem;
+    line-height: 1.6;
+  }
+  .crew {
+    display: flex;
+    gap: 40px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  .founder {
+    flex: 1 1 300px;
+    max-width: 340px;
+  }
+  .visor {
+    position: relative;
+    width: 210px;
+    height: 210px;
+    margin: 0 auto 18px;
+    border-radius: 50%;
+    overflow: hidden;
+    box-shadow:
+      0 0 0 2px rgba(180,196,255,0.28),
+      0 0 0 10px rgba(12,16,32,0.55),
+      0 18px 50px rgba(0,0,0,0.6);
+  }
+  .visor img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    filter: saturate(0.96) contrast(1.02);
+  }
+  .visor::before {
+    /* curved glass highlight */
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(70% 45% at 30% 18%, rgba(255,255,255,0.35), transparent 60%),
+      linear-gradient(200deg, rgba(150,180,255,0.16), transparent 42%);
+    mix-blend-mode: screen;
+  }
+  .visor::after {
+    /* dark rim to seat it in the helmet */
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    box-shadow: inset 0 -22px 40px rgba(0,0,0,0.55), inset 0 8px 22px rgba(0,0,0,0.35);
+  }
+  .founder h2 {
+    font-size: 1.15rem;
+    margin: 0 0 2px;
+  }
+  .founder .role {
+    color: #8fa0d8;
+    font-size: 0.8rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    margin: 0 0 10px;
+  }
+  .founder .bio {
+    color: #b9bdc9;
+    font-size: 0.9rem;
+    line-height: 1.55;
+    margin: 0;
+  }
+  main.founders .back { color: #8fa0d8; }
+</style>
+</head>
+<body>
+<div class="space">
+  <main class="founders">
+    <p class="eyebrow">Lunate</p>
+    <h1>The founders</h1>
+    <p class="mission">
+      Lunate is building the communications relay layer for the Moon&rsquo;s south
+      pole &mdash; the elliptical, apolune-dwelling orbits that keep a lander or a
+      rover in constant contact with Earth, no matter where the mission sets down.
+    </p>
+
+    <div class="crew">
+      <div class="founder">
+        <div class="visor">
+          <!-- swap for the real photo: assets/img/founders/caroline.jpg -->
+          <img src="../assets/img/founders/caroline.jpg" alt="Caroline, co-founder of Lunate">
+        </div>
+        <h2>Caroline</h2>
+        <p class="role">Co-founder</p>
+        <p class="bio">
+          <!-- TODO: replace with real bio -->
+          Works on Lunate&rsquo;s orbit design and mission analysis &mdash; the part
+          that decides where the constellation flies and proves it stays there.
+        </p>
+      </div>
+
+      <div class="founder">
+        <div class="visor">
+          <!-- swap for the real photo: assets/img/founders/caleb.jpg -->
+          <img src="../assets/img/founders/caleb.jpg" alt="Caleb, co-founder of Lunate">
+        </div>
+        <h2>Caleb</h2>
+        <p class="role">Co-founder</p>
+        <p class="bio">
+          <!-- TODO: replace with real bio -->
+          Builds the software and ground systems that turn an orbit design into a
+          service missions can actually call.
+        </p>
+      </div>
+    </div>
+
+    <a class="back" href="../">&larr; back home</a>
+  </main>
+</div>
+</body>
+</html>
