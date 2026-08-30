@@ -61,7 +61,7 @@
 <body>
 <main class="narrow">
   <h1>Elliptical Lunar Frozen Orbit</h1>
-  <p class="sub">Six relays across three polar planes, each with apolune held over the south pole &mdash; drag to look around</p>
+  <p class="sub">Five relays, one per polar plane, ascending nodes 72&deg; apart &mdash; each holds apolune over the south pole. Drag to look around.</p>
 
   <div class="stage" id="stage">
     <canvas id="view"></canvas>
@@ -70,28 +70,31 @@
 
   <div class="controls">
     <button id="toggle" type="button">Pause</button>
-    <span id="viewLabel">&ndash; / 6 with line of sight to the south pole</span>
+    <span id="viewLabel">&ndash; / 5 with line of sight to the south pole</span>
   </div>
 
   <div class="legend">
-    <span><i style="background:#8ca8ff"></i> plane 1</span>
-    <span><i style="background:#78d6be"></i> plane 2</span>
-    <span><i style="background:#c6a0ff"></i> plane 3</span>
+    <span><i style="background:#8ca8ff"></i> P1</span>
+    <span><i style="background:#78d6be"></i> P2</span>
+    <span><i style="background:#c6a0ff"></i> P3</span>
+    <span><i style="background:#f5c26b"></i> P4</span>
+    <span><i style="background:#f2919e"></i> P5</span>
     <span><i style="background:#2ecc8c"></i> line of sight to pole</span>
   </div>
 
   <dl class="params">
     <dt>Semi-major axis</dt><dt>Eccentricity</dt><dt>Planes</dt><dt>Period</dt>
-    <dd>5,837 km</dd><dd>0.6339</dd><dd>3 &times; polar, RAAN 120&deg;</dd><dd>~11.12 h</dd>
+    <dd>5,837 km</dd><dd>0.6339</dd><dd>5 &times; polar, RAAN 72&deg;</dd><dd>~11.12 h</dd>
   </dl>
 
   <p class="note">
-    Illustrative Kepler model: six satellites in three polar planes (inclination
-    90&deg;, ascending nodes 120&deg; apart), apolune of each held over the south
-    pole so coverage overlaps as planes hand off. Every plane passes directly over
-    the pole; RAAN only rotates the rest of the ground track. Real position from a
-    two-body solve; line-of-sight from a true horizon test. No perturbations,
-    terrain masking or link-margin cutoff &mdash; a diagram, not a propagation.
+    Illustrative Kepler model: five satellites, one per polar plane (inclination
+    90&deg;, ascending nodes 72&deg; apart), each holding apolune over the south
+    pole and phased 72&deg; apart so they hand the pole off in turn. Every plane
+    passes directly over the pole; RAAN only rotates the rest of the ground track.
+    Real position from a two-body solve; line-of-sight from a true horizon test. No
+    perturbations, terrain masking or link-margin cutoff &mdash; a diagram, not a
+    propagation.
   </p>
 
   <a class="back" href="../">&larr; back home</a>
@@ -106,16 +109,18 @@
   var A = 5.837, E = 0.6339;
   var AOP = Math.PI / 2;                 // apolune over the south pole
   var PERIOD_MS = 26000;                 // one orbit per 26 s of animation
-  var SATS_PER_PLANE = 2;
+  var SATS_PER_PLANE = 1;
   var SUN = norm([0.42, -0.82, 0.38]);
 
-  // Three planes, ascending nodes 120 deg apart. Inclination is 90 deg for
-  // every plane so each orbit passes exactly over the pole regardless of RAAN;
-  // they separate visually because RAAN swings the plane around the polar axis.
+  // Five planes, ascending nodes 72 deg apart. Inclination is 90 deg for every
+  // plane so each orbit passes exactly over the pole regardless of RAAN; they
+  // separate visually because RAAN swings the plane around the polar axis.
   var PLANE_DEFS = [
-    { raan:   0, inc: 90, on: "rgba(140,168,255,0.80)", off: "rgba(140,168,255,0.13)" },
-    { raan: 120, inc: 90, on: "rgba(120,214,190,0.78)", off: "rgba(120,214,190,0.12)" },
-    { raan: 240, inc: 90, on: "rgba(198,160,255,0.78)", off: "rgba(198,160,255,0.12)" }
+    { raan:   0, inc: 90, on: "rgba(140,168,255,0.82)", off: "rgba(140,168,255,0.13)" },
+    { raan:  72, inc: 90, on: "rgba(120,214,190,0.80)", off: "rgba(120,214,190,0.12)" },
+    { raan: 144, inc: 90, on: "rgba(198,160,255,0.80)", off: "rgba(198,160,255,0.12)" },
+    { raan: 216, inc: 90, on: "rgba(245,194,107,0.80)", off: "rgba(245,194,107,0.12)" },
+    { raan: 288, inc: 90, on: "rgba(242,145,158,0.80)", off: "rgba(242,145,158,0.12)" }
   ];
   var N_SAT = PLANE_DEFS.length * SATS_PER_PLANE;
 
