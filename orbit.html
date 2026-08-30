@@ -1,0 +1,272 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Elliptical Lunar Frozen Orbit &mdash; lunatespace.com</title>
+<style>
+  :root {
+    color-scheme: dark;
+  }
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: #000;
+    color: #e8e8ec;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  }
+  main {
+    max-width: 680px;
+    margin: 0 auto;
+    padding: 32px 16px 64px;
+    text-align: center;
+  }
+  h1 {
+    font-size: 1.4rem;
+    font-weight: 600;
+    margin: 0 0 4px;
+  }
+  p.sub {
+    margin: 0 0 20px;
+    color: #9a9aa5;
+    font-size: 0.9rem;
+  }
+  .stage {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 680 / 580;
+    background: radial-gradient(120% 120% at 50% 18%, #0c0c12 0%, #000 70%);
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 0 0 1px #26262e;
+  }
+  .stage svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+  .th { font-size: 15px; font-weight: 600; fill: #e8e8ec; }
+  .ts { font-size: 12px; fill: #9a9aa5; }
+  .leader { stroke: #33333c; stroke-width: 1; }
+  .controls {
+    margin-top: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    font-size: 0.85rem;
+    color: #9a9aa5;
+  }
+  button {
+    background: #1b1b22;
+    color: #e8e8ec;
+    border: 1px solid #33333c;
+    border-radius: 6px;
+    padding: 6px 14px;
+    font-size: 0.85rem;
+    cursor: pointer;
+  }
+  button:hover {
+    background: #26262e;
+  }
+  button:focus-visible {
+    outline: 2px solid #7a9aff;
+    outline-offset: 2px;
+  }
+  dl.params {
+    margin: 22px auto 0;
+    max-width: 520px;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 4px 12px;
+    font-size: 0.8rem;
+  }
+  dl.params dt {
+    color: #7a7a85;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-size: 0.68rem;
+  }
+  dl.params dd {
+    margin: 0 0 8px;
+    font-variant-numeric: tabular-nums;
+    color: #e8e8ec;
+  }
+  p.note {
+    margin: 20px auto 0;
+    max-width: 520px;
+    font-size: 0.8rem;
+    line-height: 1.5;
+    color: #7a7a85;
+  }
+  a.back {
+    display: inline-block;
+    margin-top: 28px;
+    color: #7a9aff;
+    font-size: 0.85rem;
+    text-decoration: none;
+  }
+  a.back:hover {
+    text-decoration: underline;
+  }
+</style>
+</head>
+<body>
+<main>
+  <h1>Elliptical Lunar Frozen Orbit</h1>
+  <p class="sub">Five satellites on one polar orbit &mdash; green when the Moon&rsquo;s south pole is above their local horizon</p>
+
+  <div class="stage">
+    <svg viewBox="0 0 680 580" role="img"
+         aria-label="Edge-on view of the Moon with an elliptical polar orbit. Satellites move along it and link to the south pole when it is above their horizon.">
+      <defs>
+        <radialGradient id="moonGrad" cx="33%" cy="32%" r="78%">
+          <stop offset="0%" stop-color="#F7F3E9"/>
+          <stop offset="55%" stop-color="#CFC9B8"/>
+          <stop offset="100%" stop-color="#8A8474"/>
+        </radialGradient>
+        <radialGradient id="craterGrad" cx="40%" cy="35%" r="70%">
+          <stop offset="0%" stop-color="#6f6a5c"/>
+          <stop offset="100%" stop-color="#585448"/>
+        </radialGradient>
+      </defs>
+      <ellipse cx="340" cy="322" rx="155" ry="203" fill="none" stroke="#3a3a44" stroke-width="1" stroke-dasharray="4 4"/>
+      <circle cx="340" cy="195" r="62" fill="url(#moonGrad)" stroke="#4a4638" stroke-width="1"/>
+      <ellipse cx="320" cy="176" rx="9" ry="7" fill="url(#craterGrad)" opacity="0.55"/>
+      <ellipse cx="357" cy="208" rx="6" ry="5" fill="url(#craterGrad)" opacity="0.5"/>
+      <ellipse cx="313" cy="215" rx="4" ry="3.2" fill="url(#craterGrad)" opacity="0.5"/>
+      <circle cx="340" cy="119" r="3" fill="#7a7a85"/>
+      <circle cx="340" cy="525" r="3" fill="#7a7a85"/>
+      <circle cx="340" cy="257" r="4.5" fill="#e8e8ec"/>
+      <line x1="340" y1="119" x2="520" y2="119" class="leader"/>
+      <text class="th" x="524" y="115">Perilune</text>
+      <text class="ts" x="524" y="133">fast, far side</text>
+      <line x1="340" y1="257" x2="520" y2="257" class="leader"/>
+      <text class="th" x="524" y="253">South pole</text>
+      <text class="ts" x="524" y="271">coverage target</text>
+      <line x1="340" y1="525" x2="520" y2="525" class="leader"/>
+      <text class="th" x="524" y="521">Apolune</text>
+      <text class="ts" x="524" y="539">slow dwell overhead</text>
+      <g id="links"></g>
+      <g id="sats"></g>
+    </svg>
+  </div>
+
+  <div class="controls">
+    <button id="toggle" type="button">Pause</button>
+    <span id="viewLabel">0 / 5 satellites in view</span>
+  </div>
+
+  <dl class="params">
+    <dt>Semi-major axis</dt><dt>Eccentricity</dt><dt>Inclination</dt><dt>Period</dt>
+    <dd>5,837 km</dd><dd>0.6339</dd><dd>~90&deg;</dd><dd>~11.12 h</dd>
+  </dl>
+
+  <p class="note">
+    Illustrative two-body sketch: satellite position from a real Kepler solve, visibility from a
+    true horizon test. No RAAN, 3D geometry, terrain masking or link-margin elevation cutoff &mdash;
+    it is a diagram, not a propagation.
+  </p>
+
+  <a class="back" href="index.html">&larr; back home</a>
+</main>
+
+<script>
+(function () {
+  var svg = document.querySelector(".stage svg");
+  var linksG = document.getElementById("links");
+  var satsG = document.getElementById("sats");
+  var toggleBtn = document.getElementById("toggle");
+  var viewLabel = document.getElementById("viewLabel");
+
+  var cx = 340, cy = 322, a = 203, b = 155;
+  var e = 0.6339;                 // real orbital eccentricity (a, b are display pixels)
+  var sp = { x: 340, y: 257 };    // south pole
+  var moonC = { x: 340, y: 195 }; // Moon centre
+  var N = 5, PERIOD_MS = 9000;    // 5 satellites, animation loop length (not physical seconds)
+
+  var lines = [], dots = [];
+  for (var i = 0; i < N; i++) {
+    var line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+    line.setAttribute("stroke", "#1D9E75");
+    line.setAttribute("stroke-width", "1");
+    linksG.appendChild(line);
+    lines.push(line);
+    var dot = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+    dot.setAttribute("r", "7");
+    satsG.appendChild(dot);
+    dots.push(dot);
+  }
+
+  function keplerE(M) {
+    var E = M;
+    for (var k = 0; k < 6; k++) {
+      E = E - (E - e * Math.sin(E) - M) / (1 - e * Math.cos(E));
+    }
+    return E;
+  }
+
+  function frame(t) {
+    var inView = 0;
+    for (var i = 0; i < N; i++) {
+      var M = ((2 * Math.PI * i / N) + (2 * Math.PI * t / PERIOD_MS)) % (2 * Math.PI);
+      var E = keplerE(M);
+      var x = cx + b * Math.sin(E);
+      var y = cy - a * Math.cos(E);
+      // true horizon test: visible if dot((sat - pole), (pole - centre)) > 0
+      var nx = sp.x - moonC.x, ny = sp.y - moonC.y;
+      var dx = x - sp.x, dy = y - sp.y;
+      var visible = (dx * nx + dy * ny) > 0;
+      dots[i].setAttribute("cx", x);
+      dots[i].setAttribute("cy", y);
+      if (visible) {
+        inView++;
+        dots[i].setAttribute("fill", "#1D9E75");
+        lines[i].setAttribute("x1", x);
+        lines[i].setAttribute("y1", y);
+        lines[i].setAttribute("x2", sp.x);
+        lines[i].setAttribute("y2", sp.y);
+        lines[i].setAttribute("opacity", "0.6");
+      } else {
+        dots[i].setAttribute("fill", "#6b6b73");
+        lines[i].setAttribute("opacity", "0");
+      }
+    }
+    viewLabel.textContent = inView + " / " + N + " satellites in view";
+  }
+
+  var start = null, raf = null, playing = true, pausedAt = 0;
+
+  function step(ts) {
+    if (start === null) start = ts - pausedAt;
+    frame(ts - start);
+    raf = requestAnimationFrame(step);
+  }
+
+  var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (reduce) {
+    playing = false;
+    toggleBtn.textContent = "Play";
+    frame(2200); // representative static pose
+  } else {
+    raf = requestAnimationFrame(step);
+  }
+
+  toggleBtn.addEventListener("click", function () {
+    playing = !playing;
+    if (playing) {
+      toggleBtn.textContent = "Pause";
+      start = null;
+      raf = requestAnimationFrame(step);
+    } else {
+      toggleBtn.textContent = "Play";
+      cancelAnimationFrame(raf);
+      pausedAt = performance.now() - (start || performance.now());
+    }
+  });
+})();
+</script>
+</body>
+</html>
