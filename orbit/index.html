@@ -61,7 +61,7 @@
 <body>
 <main class="narrow">
   <h1>Elliptical Lunar Frozen Orbit</h1>
-  <p class="sub">Six relays across three near-polar planes, each with apolune held over the south pole &mdash; drag to look around</p>
+  <p class="sub">Six relays across three polar planes, each with apolune held over the south pole &mdash; drag to look around</p>
 
   <div class="stage" id="stage">
     <canvas id="view"></canvas>
@@ -82,13 +82,14 @@
 
   <dl class="params">
     <dt>Semi-major axis</dt><dt>Eccentricity</dt><dt>Planes</dt><dt>Period</dt>
-    <dd>5,837 km</dd><dd>0.6339</dd><dd>3 &times; near-polar</dd><dd>~11.12 h</dd>
+    <dd>5,837 km</dd><dd>0.6339</dd><dd>3 &times; polar, RAAN 120&deg;</dd><dd>~11.12 h</dd>
   </dl>
 
   <p class="note">
-    Illustrative Kepler model: six satellites in three orbital planes (ascending
-    nodes 120&deg; apart, inclinations 87&ndash;93&deg;), apolune of each held over
-    the south pole so coverage overlaps as planes hand off. Real position from a
+    Illustrative Kepler model: six satellites in three polar planes (inclination
+    90&deg;, ascending nodes 120&deg; apart), apolune of each held over the south
+    pole so coverage overlaps as planes hand off. Every plane passes directly over
+    the pole; RAAN only rotates the rest of the ground track. Real position from a
     two-body solve; line-of-sight from a true horizon test. No perturbations,
     terrain masking or link-margin cutoff &mdash; a diagram, not a propagation.
   </p>
@@ -108,10 +109,13 @@
   var SATS_PER_PLANE = 2;
   var SUN = norm([0.42, -0.82, 0.38]);
 
+  // Three planes, ascending nodes 120 deg apart. Inclination is 90 deg for
+  // every plane so each orbit passes exactly over the pole regardless of RAAN;
+  // they separate visually because RAAN swings the plane around the polar axis.
   var PLANE_DEFS = [
     { raan:   0, inc: 90, on: "rgba(140,168,255,0.80)", off: "rgba(140,168,255,0.13)" },
-    { raan: 120, inc: 87, on: "rgba(120,214,190,0.78)", off: "rgba(120,214,190,0.12)" },
-    { raan: 240, inc: 93, on: "rgba(198,160,255,0.78)", off: "rgba(198,160,255,0.12)" }
+    { raan: 120, inc: 90, on: "rgba(120,214,190,0.78)", off: "rgba(120,214,190,0.12)" },
+    { raan: 240, inc: 90, on: "rgba(198,160,255,0.78)", off: "rgba(198,160,255,0.12)" }
   ];
   var N_SAT = PLANE_DEFS.length * SATS_PER_PLANE;
 
