@@ -1,0 +1,394 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Elliptical Lunar Frozen Orbit &mdash; lunatespace.com</title>
+<link rel="stylesheet" href="../assets/css/site.css">
+<style>
+  .stage {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 8 / 6;
+    background: radial-gradient(120% 120% at 50% 15%, #0b0b12 0%, #000 72%);
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 0 0 1px var(--hairline);
+    touch-action: none;
+    cursor: grab;
+  }
+  .stage:active { cursor: grabbing; }
+  .stage canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+  .stage .hint {
+    position: absolute;
+    left: 10px;
+    bottom: 8px;
+    font-size: 0.72rem;
+    color: var(--dim);
+    pointer-events: none;
+  }
+  dl.params {
+    margin: 22px auto 0;
+    max-width: 520px;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 4px 12px;
+    font-size: 0.8rem;
+  }
+  dl.params dt {
+    color: var(--dim);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-size: 0.68rem;
+  }
+  dl.params dd {
+    margin: 0 0 8px;
+    font-variant-numeric: tabular-nums;
+  }
+</style>
+</head>
+<body>
+<main class="narrow">
+  <h1>Elliptical Lunar Frozen Orbit</h1>
+  <p class="sub">A relay constellation that dwells over the Moon&rsquo;s south pole &mdash; drag to look around</p>
+
+  <div class="stage" id="stage">
+    <canvas id="view"></canvas>
+    <div class="hint">drag to rotate &middot; scroll to zoom</div>
+  </div>
+
+  <div class="controls">
+    <button id="toggle" type="button">Pause</button>
+    <span id="viewLabel">&ndash; / 5 with line of sight to the south pole</span>
+  </div>
+
+  <dl class="params">
+    <dt>Semi-major axis</dt><dt>Eccentricity</dt><dt>Inclination</dt><dt>Period</dt>
+    <dd>5,837 km</dd><dd>0.6339</dd><dd>90&deg;</dd><dd>~11.12 h</dd>
+  </dl>
+
+  <p class="note">
+    Illustrative Kepler model: five satellites on one polar orbit, apolune held over
+    the south pole so each in turn lingers there while moving slowly. Real position from
+    a two-body solve; line-of-sight from a true horizon test. No perturbations, terrain
+    masking or link-margin cutoff &mdash; a diagram, not a propagation.
+  </p>
+
+  <a class="back" href="../">&larr; back home</a>
+</main>
+
+<script>
+(function () {
+  "use strict";
+
+  // ---- orbit definition (units: 1 = 1000 km) -------------------------------
+  var R_MOON = 1.737;
+  var A = 5.837, E = 0.6339;
+  var INC = Math.PI / 2;        // 90 deg
+  var RAAN = 0;
+  var AOP = Math.PI / 2;        // 90 deg -> apolune over the south pole
+  var N_SAT = 5;
+  var PERIOD_MS = 24000;        // one orbit per 24 s of animation
+  var SUN = norm([0.42, -0.82, 0.38]);
+
+  // ---- vector helpers ----------------------------------------------------
+  function sub(a, b) { return [a[0]-b[0], a[1]-b[1], a[2]-b[2]]; }
+  function add(a, b) { return [a[0]+b[0], a[1]+b[1], a[2]+b[2]]; }
+  function scale(a, s) { return [a[0]*s, a[1]*s, a[2]*s]; }
+  function dot(a, b) { return a[0]*b[0] + a[1]*b[1] + a[2]*b[2]; }
+  function cross(a, b) {
+    return [a[1]*b[2]-a[2]*b[1], a[2]*b[0]-a[0]*b[2], a[0]*b[1]-a[1]*b[0]];
+  }
+  function len(a) { return Math.sqrt(dot(a, a)); }
+  function norm(a) { var l = len(a) || 1; return [a[0]/l, a[1]/l, a[2]/l]; }
+  function rotX(v, c, s) { return [v[0], v[1]*c - v[2]*s, v[1]*s + v[2]*c]; }
+  function rotZ(v, c, s) { return [v[0]*c - v[1]*s, v[0]*s + v[1]*c, v[2]]; }
+
+  // ---- Kepler ----------------------------------------------------------
+  function trueAnomaly(M) {
+    M = ((M % (2*Math.PI)) + 2*Math.PI) % (2*Math.PI);
+    var Ecc = M;
+    for (var i = 0; i < 8; i++) {
+      Ecc = Ecc - (Ecc - E*Math.sin(Ecc) - M) / (1 - E*Math.cos(Ecc));
+    }
+    return 2 * Math.atan2(
+      Math.sqrt(1 + E) * Math.sin(Ecc/2),
+      Math.sqrt(1 - E) * Math.cos(Ecc/2)
+    );
+  }
+
+  var cAOP = Math.cos(AOP), sAOP = Math.sin(AOP);
+  var cINC = Math.cos(INC), sINC = Math.sin(INC);
+  var cRAAN = Math.cos(RAAN), sRAAN = Math.sin(RAAN);
+
+  // world position for a given true anomaly
+  function orbitPos(nu) {
+    var r = A * (1 - E*E) / (1 + E*Math.cos(nu));
+    var p = [r*Math.cos(nu), r*Math.sin(nu), 0];  // perifocal
+    p = rotZ(p, cAOP, sAOP);
+    p = rotX(p, cINC, sINC);
+    p = rotZ(p, cRAAN, sRAAN);
+    return p;
+  }
+
+  var SOUTH_POLE = [0, 0, -R_MOON];
+  var POLE_NORMAL = [0, 0, -1];
+  function seesPole(sat) { return dot(sub(sat, SOUTH_POLE), POLE_NORMAL) > 0; }
+
+  // does the ray camera->P enter the Moon before reaching P?
+  function occluded(P, cam) {
+    var d = sub(P, cam);
+    var dist = len(d);
+    var dir = scale(d, 1/dist);
+    var L = scale(cam, -1);
+    var tca = dot(L, dir);
+    var d2 = dot(L, L) - tca*tca;
+    if (d2 > R_MOON*R_MOON) return false;
+    var t0 = tca - Math.sqrt(R_MOON*R_MOON - d2);
+    return t0 > 1e-4 && t0 < dist - 2e-3;
+  }
+
+  // ---- canvas / camera ------------------------------------------------
+  var stage = document.getElementById("stage");
+  var canvas = document.getElementById("view");
+  var ctx = canvas.getContext("2d");
+  var toggleBtn = document.getElementById("toggle");
+  var viewLabel = document.getElementById("viewLabel");
+
+  var W = 0, H = 0, DPR = 1;
+  function resize() {
+    DPR = Math.min(window.devicePixelRatio || 1, 2);
+    W = stage.clientWidth;
+    H = stage.clientHeight;
+    canvas.width = Math.round(W * DPR);
+    canvas.height = Math.round(H * DPR);
+  }
+  window.addEventListener("resize", resize);
+  resize();
+
+  var az = -0.9, el = 0.42, D = 26;   // camera spherical params
+  var FOV = 46 * Math.PI / 180;
+
+  function camPos() {
+    return [
+      D * Math.cos(el) * Math.cos(az),
+      D * Math.cos(el) * Math.sin(az),
+      D * Math.sin(el)
+    ];
+  }
+
+  function makeCam() {
+    var cam = camPos();
+    var f = norm(scale(cam, -1));
+    var rt = norm(cross(f, [0, 0, 1]));
+    var up = cross(rt, f);
+    var focal = 0.5 * H / Math.tan(FOV / 2);
+    return { pos: cam, f: f, rt: rt, up: up, focal: focal };
+  }
+
+  function project(P, cam) {
+    var d = sub(P, cam.pos);
+    var zc = dot(d, cam.f);
+    if (zc <= 0.05) return null;
+    return {
+      x: W/2 + cam.focal * dot(d, cam.rt) / zc,
+      y: H/2 - cam.focal * dot(d, cam.up) / zc,
+      z: zc,
+      s: cam.focal / zc
+    };
+  }
+
+  // ---- drawing pieces ----------------------------------------------
+  function drawMoon(cam) {
+    var c = project([0, 0, 0], cam);
+    if (!c) return;
+    var screenR = cam.focal * R_MOON / D;
+    var lit = project(scale(SUN, R_MOON * 0.85), cam);
+    var lx = lit ? lit.x : c.x, ly = lit ? lit.y : c.y;
+
+    var g = ctx.createRadialGradient(lx, ly, screenR * 0.1, c.x, c.y, screenR * 1.15);
+    g.addColorStop(0, "#d8d4c8");
+    g.addColorStop(0.45, "#9a968a");
+    g.addColorStop(0.8, "#4c4a44");
+    g.addColorStop(1, "#141414");
+    ctx.fillStyle = g;
+    ctx.beginPath();
+    ctx.arc(c.x, c.y, screenR, 0, 2*Math.PI);
+    ctx.fill();
+
+    // graticule on the camera-facing hemisphere
+    ctx.lineWidth = 1;
+    ctx.strokeStyle = "rgba(180,180,190,0.10)";
+    var i, j, first, p, w, nrm, seg;
+    for (i = -60; i <= 60; i += 30) {          // parallels
+      var latR = Math.cos(i*Math.PI/180) * R_MOON;
+      var z = Math.sin(i*Math.PI/180) * R_MOON;
+      first = true; ctx.beginPath();
+      for (j = 0; j <= 360; j += 8) {
+        w = [latR*Math.cos(j*Math.PI/180), latR*Math.sin(j*Math.PI/180), z];
+        nrm = norm(w);
+        p = project(w, cam);
+        if (!p || dot(nrm, sub(cam.pos, w)) <= 0) { first = true; continue; }
+        if (first) { ctx.moveTo(p.x, p.y); first = false; } else ctx.lineTo(p.x, p.y);
+      }
+      ctx.stroke();
+    }
+    for (i = 0; i < 180; i += 30) {            // meridians
+      first = true; ctx.beginPath();
+      for (j = -90; j <= 90; j += 6) {
+        var cr = Math.cos(j*Math.PI/180) * R_MOON;
+        w = [cr*Math.cos(i*Math.PI/180), cr*Math.sin(i*Math.PI/180), Math.sin(j*Math.PI/180)*R_MOON];
+        nrm = norm(w);
+        p = project(w, cam);
+        if (!p || dot(nrm, sub(cam.pos, w)) <= 0) { first = true; continue; }
+        if (first) { ctx.moveTo(p.x, p.y); first = false; } else ctx.lineTo(p.x, p.y);
+      }
+      ctx.stroke();
+    }
+
+    // south pole marker
+    var sp = project(SOUTH_POLE, cam);
+    var facing = dot(POLE_NORMAL, sub(cam.pos, SOUTH_POLE)) > 0;
+    if (sp && facing) {
+      ctx.strokeStyle = "#e8e8ec";
+      ctx.fillStyle = "#e8e8ec";
+      ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.arc(sp.x, sp.y, 4, 0, 2*Math.PI); ctx.stroke();
+      ctx.font = "600 12px -apple-system, system-ui, sans-serif";
+      ctx.fillText("S", sp.x + 8, sp.y + 4);
+    }
+    return { center: c, screenR: screenR };
+  }
+
+  function drawOrbit(cam) {
+    var STEPS = 220;
+    var prev = null, prevOcc = false;
+    for (var k = 0; k <= STEPS; k++) {
+      var nu = k / STEPS * 2*Math.PI;
+      var w = orbitPos(nu);
+      var p = project(w, cam);
+      var occ = p ? occluded(w, cam.pos) : true;
+      if (p && prev) {
+        ctx.beginPath();
+        ctx.moveTo(prev.x, prev.y);
+        ctx.lineTo(p.x, p.y);
+        if (occ || prevOcc) {
+          ctx.strokeStyle = "rgba(122,154,255,0.16)";
+          ctx.lineWidth = 1;
+        } else {
+          ctx.strokeStyle = "rgba(140,168,255,0.75)";
+          ctx.lineWidth = 1.5;
+        }
+        ctx.stroke();
+      }
+      prev = p; prevOcc = occ;
+    }
+    // perilune / apolune ticks
+    [[0, "perilune"], [Math.PI, "apolune"]].forEach(function (t) {
+      var w = orbitPos(t[0]);
+      var p = project(w, cam);
+      if (!p || occluded(w, cam.pos)) return;
+      ctx.fillStyle = "rgba(154,154,165,0.9)";
+      ctx.beginPath(); ctx.arc(p.x, p.y, 2, 0, 2*Math.PI); ctx.fill();
+      ctx.font = "11px -apple-system, system-ui, sans-serif";
+      ctx.fillText(t[1], p.x + 6, p.y + 3);
+    });
+  }
+
+  function drawSats(cam, tMs) {
+    var inView = 0;
+    var poleP = project(SOUTH_POLE, cam);
+    for (var i = 0; i < N_SAT; i++) {
+      var M = 2*Math.PI * i / N_SAT + 2*Math.PI * tMs / PERIOD_MS;
+      var w = orbitPos(trueAnomaly(M));
+      var sees = seesPole(w);
+      if (sees) inView++;
+      var p = project(w, cam);
+      if (!p) continue;
+      var occ = occluded(w, cam.pos);
+
+      if (sees && poleP && !occ) {
+        ctx.beginPath();
+        ctx.moveTo(p.x, p.y);
+        ctx.lineTo(poleP.x, poleP.y);
+        ctx.strokeStyle = "rgba(46,204,140,0.55)";
+        ctx.lineWidth = 1;
+        ctx.stroke();
+      }
+
+      var rad = Math.max(3, Math.min(6, p.s * 0.09));
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, rad, 0, 2*Math.PI);
+      if (occ) {
+        ctx.fillStyle = sees ? "rgba(46,204,140,0.35)" : "rgba(150,150,160,0.30)";
+      } else {
+        ctx.fillStyle = sees ? "#2ecc8c" : "#c8c8d0";
+      }
+      ctx.fill();
+    }
+    viewLabel.textContent = inView + " / " + N_SAT + " with line of sight to the south pole";
+  }
+
+  // ---- loop --------------------------------------------------------
+  var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var running = !reduce;
+  var simT = reduce ? PERIOD_MS * 0.30 : 0;   // static pose: someone near apolune
+  var last = null;
+
+  function frame(now) {
+    if (last === null) last = now;
+    var dt = now - last;
+    last = now;
+
+    if (running) {
+      simT += dt;
+      if (!dragging) az += dt * 0.00006;       // gentle drift
+    }
+
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    ctx.clearRect(0, 0, W, H);
+    var cam = makeCam();
+
+    // order: orbit behind the Moon, then Moon, then orbit in front + sats
+    drawOrbit(cam);
+    drawMoon(cam);
+    drawSats(cam, simT);
+
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+
+  if (reduce) toggleBtn.textContent = "Play";
+  toggleBtn.addEventListener("click", function () {
+    running = !running;
+    toggleBtn.textContent = running ? "Pause" : "Play";
+    last = null;
+  });
+
+  // ---- interaction ----------------------------------------------
+  var dragging = false, px = 0, py = 0;
+  stage.addEventListener("pointerdown", function (e) {
+    dragging = true; px = e.clientX; py = e.clientY;
+    stage.setPointerCapture(e.pointerId);
+  });
+  stage.addEventListener("pointermove", function (e) {
+    if (!dragging) return;
+    az -= (e.clientX - px) * 0.008;
+    el += (e.clientY - py) * 0.008;
+    el = Math.max(-1.45, Math.min(1.45, el));
+    px = e.clientX; py = e.clientY;
+  });
+  function endDrag(e) {
+    dragging = false;
+    try { stage.releasePointerCapture(e.pointerId); } catch (err) {}
+  }
+  stage.addEventListener("pointerup", endDrag);
+  stage.addEventListener("pointercancel", endDrag);
+  stage.addEventListener("wheel", function (e) {
+    e.preventDefault();
+    D = Math.max(12, Math.min(60, D * (1 + Math.sign(e.deltaY) * 0.08)));
+  }, { passive: false });
+})();
+</script>
+</body>
+</html>
